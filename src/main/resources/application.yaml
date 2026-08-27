@@ -1,3 +1,6 @@
 spring:
   application:
     name: rsocket-user-service
+  rsocket:
+    server:
+      port: 7071
