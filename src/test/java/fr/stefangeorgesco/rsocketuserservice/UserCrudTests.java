@@ -1,6 +1,8 @@
 package fr.stefangeorgesco.rsocketuserservice;
 
+import fr.stefangeorgesco.rsocketuserservice.domain.OperationType;
 import fr.stefangeorgesco.rsocketuserservice.dto.UserDto;
+import io.rsocket.metadata.WellKnownMimeType;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.rsocket.RSocketRequester;
+import org.springframework.util.MimeType;
+import org.springframework.util.MimeTypeUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -140,6 +144,22 @@ class UserCrudTests {
         System.out.println("Count after: " + countAfter);
 
         assertEquals(countBefore - 1, countAfter);
+    }
+
+    @Test
+    void metadataOperationTest()  {
+
+        MimeType mimeType = MimeTypeUtils.parseMimeType(WellKnownMimeType.APPLICATION_CBOR.getString());
+
+        UserDto dto = new UserDto(null, "md", 100);
+
+        Mono<Void> mono = this.requester.route("user.operation")
+                .metadata(OperationType.PUT, mimeType)
+                .data(dto)
+                .send();
+
+        StepVerifier.create(mono)
+                .verifyComplete();
     }
 
     /*
